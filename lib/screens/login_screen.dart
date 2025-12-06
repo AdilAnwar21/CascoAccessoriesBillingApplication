@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Logo Section
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
@@ -41,10 +41,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.sports_motorsports,
-                    size: 64,
-                    color: AppTheme.primaryOrange,
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/casco_logo.png',
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback to icon if image fails to load
+                        return const Icon(
+                          Icons.sports_motorsports,
+                          size: 64,
+                          color: AppTheme.primaryOrange,
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -61,11 +72,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Helmets and Accessories',
+                  'Accessories',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: AppTheme.textLight,
-                    letterSpacing: 1,
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 48),

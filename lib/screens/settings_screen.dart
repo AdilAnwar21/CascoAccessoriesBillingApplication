@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import '../services/data_storage_service.dart';
 
@@ -35,12 +36,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final prov = Provider.of<AppProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppTheme.lightGrey,
+      backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.lightGrey,
       appBar: AppBar(
         title: const Text('Settings'),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -48,11 +51,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Dark Mode Toggle Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCard : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryOrange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      isDark ? Icons.dark_mode : Icons.light_mode,
+                      color: AppTheme.primaryOrange,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dark Mode',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppTheme.darkTextPrimary
+                                : AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isDark
+                              ? 'Switch to light theme'
+                              : 'Switch to dark theme',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppTheme.darkTextSecondary
+                                : AppTheme.textLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: isDark,
+                    onChanged: (_) => themeProvider.toggleTheme(),
+                    activeColor: AppTheme.primaryOrange,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
             // Business Info Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? AppTheme.darkCard : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -84,20 +155,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Business Information',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.textDark,
+                                color: isDark
+                                    ? AppTheme.darkTextPrimary
+                                    : AppTheme.textDark,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               prov.user?.name ?? 'N/A',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: AppTheme.textLight,
+                                color: isDark
+                                    ? AppTheme.darkTextSecondary
+                                    : AppTheme.textLight,
                               ),
                             ),
                           ],
