@@ -30,4 +30,24 @@ class UserModel {
     required this.gst,
     required this.sgst,
   });
+
+  Map<String, dynamic> toJson() => {
+        'uid': uid,
+        'name': name,
+        'email': email,
+        'role': role,
+        'gst': gst,
+        'sgst': sgst,
+      };
+
+  static UserModel fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      uid: json['uid'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      role: json['role'] ?? 'employee',
+      gst: (json['gst'] ?? 0.0).toDouble(),
+      sgst: (json['sgst'] ?? 0.0).toDouble(),
+    );
+  }
 }

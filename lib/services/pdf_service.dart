@@ -315,51 +315,111 @@ class PdfService {
   // Download PDF to Downloads folder
   Future<String> downloadInvoicePdf(Bill bill) async {
     try {
-      // Request storage permission
-      if (Platform.isAndroid) {
-        var status = await Permission.storage.status;
-        if (!status.isGranted) {
-          status = await Permission.storage.request();
-          if (!status.isGranted) {
-            // Try with manageExternalStorage for Android 11+
-            status = await Permission.manageExternalStorage.request();
-            if (!status.isGranted) {
-              throw Exception('Storage permission denied');
-            }
-          }
-        }
-      }
-
-      // Generate PDF
+      // Generate PDF first
       final pdfFile = await createInvoicePdf(bill);
       final bytes = await pdfFile.readAsBytes();
 
-      // Get Downloads directory
-      Directory? downloadsDir;
-      if (Platform.isAndroid) {
-        downloadsDir = Directory('/storage/emulated/0/Download');
-        if (!await downloadsDir.exists()) {
-          downloadsDir = await getExternalStorageDirectory();
-        }
-      } else {
-        downloadsDir = await getApplicationDocumentsDirectory();
-      }
-
-      if (downloadsDir == null) {
-        throw Exception('Could not access downloads directory');
-      }
-
-      // Create file with timestamp
+      // Create file name with timestamp
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final fileName =
           'CASCO_Invoice_${bill.customerName.replaceAll(' ', '_')}_$timestamp.pdf';
-      final savedFile = File('${downloadsDir.path}/$fileName');
 
-      await savedFile.writeAsBytes(bytes);
+      if (Platform.isAndroid) {
+        // For Android, request appropriate permissions based on version
+        final androidInfo = await _getAndroidVersion();
 
-      return savedFile.path;
+        if (androidInfo >= 33) {
+          // Android 13+ doesn't need storage permissions for Downloads folder
+          // We can write directly to app-specific external storage
+          final directory = await getExternalStorageDirectory();
+          if (directory == null) {
+            throw Exception('Could not access external storage');
+          }
+
+          // Create Downloads folder in app-specific storage
+          final downloadsPath = '${directory.path}/Downloads';
+          final downloadsDir = Directory(downloadsPath);
+          if (!await downloadsDir.exists()) {
+            await downloadsDir.create(recursive: true);
+          }
+
+          final savedFile = File('$downloadsPath/$fileName');
+          await savedFile.writeAsBytes(bytes);
+          return savedFile.path;
+        } else {
+          // Android 12 and below - use traditional approach
+          var status = await Permission.storage.status;
+          if (!status.isGranted) {
+            status = await Permission.storage.request();
+            if (!status.isGranted) {
+              // Try manageExternalStorage for Android 11+
+              if (androidInfo >= 30) {
+                status = await Permission.manageExternalStorage.request();
+              }
+              if (!status.isGranted) {
+                throw Exception(
+                    'Storage permission denied. Please grant storage permission in app settings.');
+              }
+            }
+          }
+
+          // Try to save to public Downloads folder
+          Directory? downloadsDir;
+          final publicDownloads = Directory('/storage/emulated/0/Download');
+
+          if (await publicDownloads.exists()) {
+            downloadsDir = publicDownloads;
+          } else {
+            // Fallback to app-specific external storage
+            downloadsDir = await getExternalStorageDirectory();
+            if (downloadsDir != null) {
+              final customDownloads =
+                  Directory('${downloadsDir.path}/Downloads');
+              if (!await customDownloads.exists()) {
+                await customDownloads.create(recursive: true);
+              }
+              downloadsDir = customDownloads;
+            }
+          }
+
+          if (downloadsDir == null) {
+            throw Exception('Could not access downloads directory');
+          }
+
+          final savedFile = File('${downloadsDir.path}/$fileName');
+          await savedFile.writeAsBytes(bytes);
+          return savedFile.path;
+        }
+      } else {
+        // iOS/macOS - use app documents directory
+        final directory = await getApplicationDocumentsDirectory();
+        final savedFile = File('${directory.path}/$fileName');
+        await savedFile.writeAsBytes(bytes);
+        return savedFile.path;
+      }
     } catch (e) {
       throw Exception('Failed to download PDF: $e');
+    }
+  }
+
+  // Helper method to get Android SDK version
+  Future<int> _getAndroidVersion() async {
+    if (!Platform.isAndroid) return 0;
+
+    try {
+      // This is a simple approach - in production you might want to use
+      // device_info_plus package for more accurate version detection
+      final directory = await getExternalStorageDirectory();
+      if (directory == null) return 30; // Assume modern Android
+
+      // Try to access public downloads - if it fails, likely Android 13+
+      final publicDownloads = Directory('/storage/emulated/0/Download');
+      if (await publicDownloads.exists()) {
+        return 30; // Likely Android 11-12
+      }
+      return 33; // Likely Android 13+
+    } catch (e) {
+      return 33; // Default to modern Android
     }
   }
 

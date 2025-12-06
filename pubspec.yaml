@@ -32,6 +32,9 @@ dependencies:
   # Excel Export
   excel: ^2.1.0
 
+  # File Picker
+  file_picker: ^8.0.0+1
+
   # Icons
   cupertino_icons: ^1.0.8
 

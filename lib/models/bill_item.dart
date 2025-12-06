@@ -24,11 +24,25 @@ class BillItem {
         'total': total,
       };
 
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'qty': qty,
+        'price': price,
+      };
+
   static BillItem fromMap(Map<String, dynamic> m) {
     return BillItem(
       name: m['name'] ?? '',
       qty: (m['qty'] ?? 1) as int,
       price: (m['price'] ?? 0.0).toDouble(),
+    );
+  }
+
+  static BillItem fromJson(Map<String, dynamic> json) {
+    return BillItem(
+      name: json['name'] ?? '',
+      qty: (json['qty'] ?? 1) as int,
+      price: (json['price'] ?? 0.0).toDouble(),
     );
   }
 }

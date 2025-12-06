@@ -59,4 +59,31 @@ class Bill {
         'sgstAmount': sgstAmount,
         'total': total,
       };
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'customerName': customerName,
+        'customerEmail': customerEmail,
+        'date': date.toIso8601String(),
+        'items': items.map((e) => e.toJson()).toList(),
+        'gstPercent': gstPercent,
+        'sgstPercent': sgstPercent,
+        'whatsappNumber': whatsappNumber,
+      };
+
+  static Bill fromJson(Map<String, dynamic> json) {
+    return Bill(
+      id: json['id'] ?? '',
+      customerName: json['customerName'] ?? '',
+      customerEmail: json['customerEmail'] ?? '',
+      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      items: (json['items'] as List?)
+              ?.map((item) => BillItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      gstPercent: (json['gstPercent'] ?? 0.0).toDouble(),
+      sgstPercent: (json['sgstPercent'] ?? 0.0).toDouble(),
+      whatsappNumber: json['whatsappNumber'] ?? '',
+    );
+  }
 }
