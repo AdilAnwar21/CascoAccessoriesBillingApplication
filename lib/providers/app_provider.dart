@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/bill_service.dart';
+import '../services/biometric_service.dart';
 import '../models/user_model.dart';
 import '../models/bill.dart';
 
@@ -38,6 +39,24 @@ class AppProvider extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
     return success;
+  }
+
+  /// Login with email only (for biometric/PIN authentication)
+  Future<bool> loginWithEmail(String email) async {
+    isLoading = true;
+    notifyListeners();
+
+    user = await _auth.getUser(email);
+    if (user != null) {
+      await fetchBills();
+      isLoading = false;
+      notifyListeners();
+      return true;
+    }
+
+    isLoading = false;
+    notifyListeners();
+    return false;
   }
 
   Future<bool> register(UserModel newUser, String password) async {
@@ -94,6 +113,11 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     await _auth.signOut();
+
+    // Clear biometric/PIN data for security
+    final biometricService = BiometricService();
+    await biometricService.clearAllData();
+
     user = null;
     bills = [];
     notifyListeners();

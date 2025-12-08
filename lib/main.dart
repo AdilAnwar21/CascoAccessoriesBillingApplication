@@ -6,7 +6,9 @@ import 'theme/app_theme.dart';
 import 'providers/app_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/login_screen.dart';
+import 'screens/biometric_login_screen.dart';
 import 'screens/home_screen.dart';
+import 'services/biometric_service.dart';
 
 import 'models/user_model.dart';
 import 'models/bill.dart';
@@ -63,19 +65,55 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Root extends StatelessWidget {
+class Root extends StatefulWidget {
   const Root({super.key});
+
+  @override
+  State<Root> createState() => _RootState();
+}
+
+class _RootState extends State<Root> {
+  final BiometricService _biometricService = BiometricService();
+  bool _checkingBiometric = true;
+  bool _showBiometricLogin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricLogin();
+  }
+
+  Future<void> _checkBiometricLogin() async {
+    final quickLoginEnabled = await _biometricService.isQuickLoginEnabled();
+    final lastEmail = await _biometricService.getLastLoggedInEmail();
+
+    setState(() {
+      _showBiometricLogin = quickLoginEnabled && lastEmail != null;
+      _checkingBiometric = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final prov = Provider.of<AppProvider>(context);
 
-    if (prov.isLoading) {
+    if (prov.isLoading || _checkingBiometric) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    // LOCAL login check (not Firebase anymore)
-    return prov.user == null ? const LoginScreen() : const HomeScreen();
+    // If user is logged in, show home screen
+    if (prov.user != null) {
+      return const HomeScreen();
+    }
+
+    // If biometric/PIN is enabled, show biometric login
+    if (_showBiometricLogin) {
+      return const BiometricLoginScreen();
+    }
+
+    // Otherwise show regular login
+    return const LoginScreen();
   }
 }

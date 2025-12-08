@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../services/biometric_service.dart';
 import '../theme/app_theme.dart';
 import 'register_screen.dart';
 
@@ -13,6 +14,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _pass = TextEditingController();
+  final BiometricService _biometricService = BiometricService();
   bool _loading = false;
   bool _obscurePassword = true;
 
@@ -235,7 +237,10 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final prov = Provider.of<AppProvider>(context, listen: false);
       final success = await prov.login(_email.text.trim(), _pass.text.trim());
-      if (!success && mounted) {
+      if (success) {
+        // Save email for biometric/PIN login
+        await _biometricService.saveLastLoggedInEmail(_email.text.trim());
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Invalid credentials or user not found'),
