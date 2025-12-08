@@ -29,6 +29,9 @@ class Bill {
   @HiveField(7)
   final String whatsappNumber;
 
+  @HiveField(8)
+  final String invoiceNumber;
+
   Bill({
     required this.id,
     required this.customerName,
@@ -38,6 +41,7 @@ class Bill {
     required this.gstPercent,
     required this.sgstPercent,
     required this.whatsappNumber,
+    required this.invoiceNumber,
   });
 
   double get subtotal => items.fold(0.0, (s, it) => s + it.total);
@@ -54,6 +58,7 @@ class Bill {
         'gstPercent': gstPercent,
         'sgstPercent': sgstPercent,
         'whatsappNumber': whatsappNumber,
+        'invoiceNumber': invoiceNumber,
         'subtotal': subtotal,
         'gstAmount': gstAmount,
         'sgstAmount': sgstAmount,
@@ -69,6 +74,7 @@ class Bill {
         'gstPercent': gstPercent,
         'sgstPercent': sgstPercent,
         'whatsappNumber': whatsappNumber,
+        'invoiceNumber': invoiceNumber,
       };
 
   static Bill fromJson(Map<String, dynamic> json) {
@@ -84,6 +90,7 @@ class Bill {
       gstPercent: (json['gstPercent'] ?? 0.0).toDouble(),
       sgstPercent: (json['sgstPercent'] ?? 0.0).toDouble(),
       whatsappNumber: json['whatsappNumber'] ?? '',
+      invoiceNumber: json['invoiceNumber'] ?? '',
     );
   }
 }

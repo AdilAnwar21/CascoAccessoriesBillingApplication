@@ -41,8 +41,11 @@ class PdfService {
                     ),
                     pw.SizedBox(height: 2),
                     pw.Text(
-                      'Helmets And Accessories',
-                      style: const pw.TextStyle(fontSize: 13),
+                      'Accessories',
+                      style: pw.TextStyle(
+                        fontSize: 13,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
                     ),
                     pw.SizedBox(height: 6),
                     pw.Text(
@@ -73,9 +76,16 @@ class PdfService {
               ),
               pw.SizedBox(height: 12),
 
-              // Invoice# and Date in table
+              // Invoice# and Date table (no borders, bold text)
               pw.Table(
-                border: pw.TableBorder.all(width: 1, color: PdfColors.black),
+                border: pw.TableBorder(
+                  left: pw.BorderSide.none,
+                  right: pw.BorderSide.none,
+                  top: pw.BorderSide.none,
+                  bottom: pw.BorderSide.none,
+                  horizontalInside: pw.BorderSide.none,
+                  verticalInside: pw.BorderSide.none,
+                ),
                 columnWidths: {
                   0: const pw.FlexColumnWidth(1),
                   1: const pw.FlexColumnWidth(1),
@@ -86,15 +96,21 @@ class PdfService {
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(6),
                         child: pw.Text(
-                          'Invoice#:',
-                          style: const pw.TextStyle(fontSize: 11),
+                          'Invoice#: ${bill.invoiceNumber}',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
                         ),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(6),
                         child: pw.Text(
-                          'Date:',
-                          style: const pw.TextStyle(fontSize: 11),
+                          'Date: ${df.format(bill.date)}',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],

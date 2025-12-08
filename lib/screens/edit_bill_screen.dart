@@ -162,6 +162,7 @@ class _EditBillScreenState extends State<EditBillScreen> {
         items: items,
         gstPercent: widget.bill.gstPercent,
         sgstPercent: widget.bill.sgstPercent,
+        invoiceNumber: widget.bill.invoiceNumber,
       );
 
       await prov.updateBill(updatedBill);

@@ -18,10 +18,12 @@ class _CreateBillScreenState extends State<CreateBillScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _whatsapp = TextEditingController();
+  final _invoiceNumber = TextEditingController();
   final _itemName = TextEditingController();
   final _qty = TextEditingController(text: '1');
   final _price = TextEditingController();
   bool _loading = false;
+  DateTime _selectedDate = DateTime.now();
 
   void _addItem() {
     final n = _itemName.text.trim();
@@ -149,10 +151,13 @@ class _CreateBillScreenState extends State<CreateBillScreen> {
         customerName: _name.text.trim(),
         customerEmail: _email.text.trim(),
         whatsappNumber: _whatsapp.text.trim(),
-        date: DateTime.now(),
+        date: _selectedDate,
         items: items,
         gstPercent: gst,
         sgstPercent: sgst,
+        invoiceNumber: _invoiceNumber.text.trim().isEmpty
+            ? 'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}'
+            : _invoiceNumber.text.trim(),
       );
 
       await prov.addBill(bill);
@@ -258,6 +263,47 @@ class _CreateBillScreenState extends State<CreateBillScreen> {
                       labelText: 'WhatsApp Number',
                       hintText: 'Enter WhatsApp number',
                       prefixIcon: Icon(Icons.phone_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 16),
+
+                  // Invoice Number
+                  TextField(
+                    controller: _invoiceNumber,
+                    decoration: const InputDecoration(
+                      labelText: 'Invoice Number (Optional)',
+                      hintText: 'Auto-generated if empty',
+                      prefixIcon: Icon(Icons.receipt_long_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Date Picker
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _selectedDate = picked;
+                        });
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Invoice Date',
+                        prefixIcon: Icon(Icons.calendar_today_outlined),
+                      ),
+                      child: Text(
+                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ],
