@@ -26,13 +26,14 @@ class BillAdapter extends TypeAdapter<Bill> {
       sgstPercent: fields[6] as double,
       whatsappNumber: fields[7] as String,
       invoiceNumber: fields[8] as String,
+      customerAddress: fields[9] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Bill obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class BillAdapter extends TypeAdapter<Bill> {
       ..writeByte(7)
       ..write(obj.whatsappNumber)
       ..writeByte(8)
-      ..write(obj.invoiceNumber);
+      ..write(obj.invoiceNumber)
+      ..writeByte(9)
+      ..write(obj.customerAddress);
   }
 
   @override

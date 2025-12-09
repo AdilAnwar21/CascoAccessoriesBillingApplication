@@ -131,6 +131,11 @@ class PdfService {
                 bill.customerName.toUpperCase(),
                 style: const pw.TextStyle(fontSize: 11),
               ),
+              if (bill.customerAddress.isNotEmpty)
+                pw.Text(
+                  bill.customerAddress,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
               if (bill.whatsappNumber.isNotEmpty)
                 pw.Text(
                   bill.whatsappNumber,

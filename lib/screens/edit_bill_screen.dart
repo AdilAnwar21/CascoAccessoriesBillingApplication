@@ -19,6 +19,7 @@ class _EditBillScreenState extends State<EditBillScreen> {
   late List<BillItem> items;
   late TextEditingController _name;
   late TextEditingController _email;
+  late TextEditingController _address;
   late TextEditingController _whatsapp;
   final _itemName = TextEditingController();
   final _qty = TextEditingController(text: '1');
@@ -31,6 +32,7 @@ class _EditBillScreenState extends State<EditBillScreen> {
     items = List.from(widget.bill.items);
     _name = TextEditingController(text: widget.bill.customerName);
     _email = TextEditingController(text: widget.bill.customerEmail);
+    _address = TextEditingController(text: widget.bill.customerAddress);
     _whatsapp = TextEditingController(text: widget.bill.whatsappNumber);
   }
 
@@ -157,6 +159,7 @@ class _EditBillScreenState extends State<EditBillScreen> {
         id: widget.bill.id,
         customerName: _name.text.trim(),
         customerEmail: _email.text.trim(),
+        customerAddress: _address.text.trim(),
         whatsappNumber: _whatsapp.text.trim(),
         date: widget.bill.date,
         items: items,
@@ -242,6 +245,16 @@ class _EditBillScreenState extends State<EditBillScreen> {
                       labelText: 'Customer Name *',
                       hintText: 'Enter customer name',
                       prefixIcon: Icon(Icons.person_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _address,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Customer Address (Optional)',
+                      hintText: 'Enter address',
+                      prefixIcon: Icon(Icons.location_on_outlined),
                     ),
                   ),
                   const SizedBox(height: 12),

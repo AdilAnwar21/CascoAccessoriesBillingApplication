@@ -17,6 +17,7 @@ class _CreateBillScreenState extends State<CreateBillScreen> {
   final List<BillItem> items = [];
   final _name = TextEditingController();
   final _email = TextEditingController();
+  final _address = TextEditingController();
   final _whatsapp = TextEditingController();
   final _invoiceNumber = TextEditingController();
   final _itemName = TextEditingController();
@@ -150,6 +151,7 @@ class _CreateBillScreenState extends State<CreateBillScreen> {
         id: id,
         customerName: _name.text.trim(),
         customerEmail: _email.text.trim(),
+        customerAddress: _address.text.trim(),
         whatsappNumber: _whatsapp.text.trim(),
         date: _selectedDate,
         items: items,
@@ -243,6 +245,16 @@ class _CreateBillScreenState extends State<CreateBillScreen> {
                       labelText: 'Customer Name *',
                       hintText: 'Enter customer name',
                       prefixIcon: Icon(Icons.person_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _address,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Customer Address (Optional)',
+                      hintText: 'Enter address',
+                      prefixIcon: Icon(Icons.location_on_outlined),
                     ),
                   ),
                   const SizedBox(height: 12),

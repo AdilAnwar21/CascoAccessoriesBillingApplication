@@ -32,6 +32,9 @@ class Bill {
   @HiveField(8)
   final String invoiceNumber;
 
+  @HiveField(9)
+  final String customerAddress;
+
   Bill({
     required this.id,
     required this.customerName,
@@ -42,6 +45,7 @@ class Bill {
     required this.sgstPercent,
     required this.whatsappNumber,
     required this.invoiceNumber,
+    this.customerAddress = '',
   });
 
   double get subtotal => items.fold(0.0, (s, it) => s + it.total);
