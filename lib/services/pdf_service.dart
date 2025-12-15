@@ -16,8 +16,8 @@ class PdfService {
     final totalCGST = bill.gstAmount;
     final totalSGST = bill.sgstAmount;
     final gstAt18 = totalCGST + totalSGST; // Combined GST at 18%
-    final floodCess = bill.total * 0.01; // 1% of total
-    final grandTotal = bill.total + floodCess;
+    final floodCess = 0.00; // 1% of total
+    final grandTotal = bill.total;
 
     pdf.addPage(
       pw.Page(
@@ -40,7 +40,7 @@ class PdfService {
                     ),
                     pw.SizedBox(height: 2),
                     pw.Text(
-                      'Accessories',
+                      'Helmets and Accessories',
                       style: pw.TextStyle(
                         fontSize: 13,
                         fontWeight: pw.FontWeight.bold,

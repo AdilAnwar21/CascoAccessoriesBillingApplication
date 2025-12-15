@@ -3,10 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
+import 'package:printing/printing.dart';
+import '../services/pdf_service.dart';
 import 'create_bill_screen.dart';
+import 'edit_bill_screen.dart';
 
 class AnalyticsScreen extends StatelessWidget {
-  const AnalyticsScreen({super.key});
+  final VoidCallback? onViewAllTap;
+
+  const AnalyticsScreen({super.key, this.onViewAllTap});
 
   @override
   Widget build(BuildContext context) {
@@ -254,9 +259,7 @@ class AnalyticsScreen extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      // Switch to invoices tab (handled by parent)
-                    },
+                    onPressed: onViewAllTap,
                     child: const Text('View All'),
                   ),
                 ],
@@ -309,7 +312,6 @@ class AnalyticsScreen extends StatelessWidget {
               else
                 ...prov.bills.take(5).map((bill) => Container(
                       margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
@@ -321,52 +323,65 @@ class AnalyticsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryOrange.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.receipt,
-                              color: AppTheme.primaryOrange,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => _showInvoiceOptions(context, bill, prov),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
                               children: [
-                                Text(
-                                  bill.customerName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppTheme.primaryOrange.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.receipt,
+                                    color: AppTheme.primaryOrange,
+                                    size: 20,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        bill.customerName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        DateFormat('MMM dd, yyyy')
+                                            .format(bill.date),
+                                        style: const TextStyle(
+                                          color: AppTheme.textLight,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 Text(
-                                  DateFormat('MMM dd, yyyy').format(bill.date),
+                                  '₹${bill.total.toStringAsFixed(2)}',
                                   style: const TextStyle(
-                                    color: AppTheme.textLight,
-                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: AppTheme.primaryOrange,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          Text(
-                            '₹${bill.total.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: AppTheme.primaryOrange,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     )),
             ],
@@ -428,6 +443,146 @@ class AnalyticsScreen extends StatelessWidget {
               color: AppTheme.textLight,
               fontSize: 11,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInvoiceOptions(BuildContext context, bill, AppProvider prov) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading:
+                  const Icon(Icons.download, color: AppTheme.primaryOrange),
+              title: const Text('Download PDF'),
+              onTap: () {
+                Navigator.pop(context);
+                _downloadPdf(context, bill);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit, color: AppTheme.primaryOrange),
+              title: const Text('Edit Invoice'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditBillScreen(bill: bill),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete Invoice'),
+              onTap: () {
+                Navigator.pop(context);
+                _confirmDelete(context, bill, prov);
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _downloadPdf(BuildContext context, bill) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryOrange),
+        ),
+      );
+
+      final pdfService = PdfService();
+      final filePath = await pdfService.downloadInvoicePdf(bill);
+
+      if (context.mounted) Navigator.pop(context);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('PDF downloaded!\n$filePath'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'Open',
+              textColor: Colors.white,
+              onPressed: () async {
+                final file = await pdfService.createInvoicePdf(bill);
+                final bytes = await file.readAsBytes();
+                await Printing.sharePdf(
+                    bytes: bytes, filename: 'invoice_${bill.id}.pdf');
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Can't download PDF: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _confirmDelete(BuildContext context, bill, AppProvider prov) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Invoice'),
+        content: Text(
+            'Are you sure you want to delete invoice for ${bill.customerName}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await prov.deleteBill(bill.id);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Invoice deleted'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),
